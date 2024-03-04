@@ -1,4 +1,5 @@
 from capacity import getCapacity
+from routes import getFastestRoutes
 import time
 
 def welcome():                        
@@ -8,12 +9,30 @@ def welcome():
     time.sleep(3)    
     init_program()
 
+def print_routes_items(routes_items):
+    print("---------------------------------------------------------------------")
+    print("                     Detalhes das Rotas e Itens                      ")
+    print("---------------------------------------------------------------------")
+    print("Quantidade de rotas: ", len(routes_items))
+    for corrida, data in routes_items.items():
+        print(f"\n{corrida}:")
+        print("   Rota:")
+        print("    -> ", end="")
+        print(" -> ".join(data['rota']))
+        print("\n   Itens da rota:")
+        for item in data['itens']:
+            print(f"      - Pedido: {item['pedido']}, Peso: {item['peso']}, Prioridade: {item['prioridade']}")
+    print("---------------------------------------------------------------------")
 
 def init_program():
-    mochilas = getCapacity()
-    rotas = getCapacity()
-    print('Melhor organização da caixa: {}'.format(mochilas))
-    print('Melhor Rota para o entregador: {}'.format(rotas))
+    backpacks = getCapacity()
+    dicionario_rota_itens = {}
+
+    for index, items in enumerate(backpacks):  
+        orders = [order['pedido'] for order in items]
+        dicionario_rota_itens[f'Corrida_{index + 1}'] = {'rota': getFastestRoutes(orders), 'itens': items}
+    
+    print_routes_items(dicionario_rota_itens)
 
 
 welcome()

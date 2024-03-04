@@ -1,18 +1,16 @@
 from random import sample, random, choice
 import random
 import operator
-
+import math
 
 # Iniciando variáveis
-
-populationSize = 10
+populationSize = 0
 solution = None
 endPoint = 20
 mutation_tax = 0.5
 
-
-""" Retorna um dicionário com a posição de cada letra na matriz """
-def get_data(file):
+# Retorna um dicionário com a posição de cada letra na matriz
+def get_data(file, routes):
     positions = {}
     lineNumber, columnNumber =  map(int, file.readline().split(' '))      # Recebe o nº de linhas e colunas da matriz
     for line in range(lineNumber):
@@ -23,20 +21,24 @@ def get_data(file):
                     positions[lineList[column]] = (line, column)          # Atribui a letra sua posição na matriz 
         except:
             print("Something else went wrong") 
-    return(positions)
+    routes.append('L')
+    items_presentes = {chave: valor for chave, valor in positions.items() if chave in routes}
+    positions = items_presentes
+    return positions
 
-
+# Inicializa a população de cromossomos (rotas)
 def initiate_population(positions):
+    global populationSize
     routesWithoutR = [item for item in positions if item != 'L']
     random_permutation = []
-    while len(random_permutation) < 10:
+    populationSize = math.factorial(len(routesWithoutR)) // 2
+    while len(random_permutation) <= populationSize:
         permutation = sample(routesWithoutR,len(routesWithoutR))              # Gera uma rota aleatória
         if (permutation not in random_permutation):
             random_permutation.append(permutation)
     return random_permutation
 
-
-""" Retorna a distância entre 2 pontos """ 
+# Retorna a distância entre os pontos
 def getGenome(possibility):
     possibility = 'L' + "".join(possibility) + 'L'
     result = 0
@@ -45,17 +47,18 @@ def getGenome(possibility):
         nextLetter = positions.get(possibility[position + 1])
         firstSubtraction = abs(atualLetter[0] - nextLetter[0])
         secondSubtraction = abs(atualLetter[1] - nextLetter[1])
+
         result +=  firstSubtraction + secondSubtraction
-    print(result)
     return result 
 
+# Calcula a aptidão de cada cromossomo (rota)
 def getFitness(population):
     fitnessResults = {}
     for individual in range(len(population)):
-        fitnessResults[individual] = 1/getGenome(population[individual])  
+        fitnessResults[individual] = 1/getGenome(population[individual])
     return fitnessResults
-   
-    
+
+# Obtém a melhor solução com base na aptidão dos cromossomos
 def getBestSolution(rank, population):
     global solution 
     possibility = max(rank.items(), key=operator.itemgetter(1))
@@ -65,6 +68,7 @@ def getBestSolution(rank, population):
         if possibility[1] > solution[1]:
             solution = [population[possibility[0]], possibility[1]]
 
+# Realiza a seleção de cromossomos proporcional à sua aptidão
 def selection(rank):
     global populationSize
     routes = []
@@ -76,7 +80,7 @@ def selection(rank):
             routes.append(rank_list[iterator])
     return routes
 
-
+# Realiza o cruzamento entre dois cromossomos (rotas)
 def crossover(dadOne, dadTwo):
     partDadOne = []
     partDadTwo = []
@@ -86,7 +90,7 @@ def crossover(dadOne, dadTwo):
     partDadTwo = [item for item in dadTwo if item not in partDadOne]
     return  partDadOne + partDadTwo
 
-
+# Realiza a mutação de cromossomos
 def mutatePopulation(newPopulation):
     mutatedPopulation = []
     for iterator in range(0, len(newPopulation)):
@@ -94,7 +98,7 @@ def mutatePopulation(newPopulation):
         mutatedPopulation.append(mutation_result)
     return mutatedPopulation
 
-
+# Aplica mutação a um cromossomo
 def mutation(route):
     global mutation_tax
     for targetCity in range(len(route)):
@@ -107,11 +111,18 @@ def mutation(route):
             route[swapCity] = firstCity
     return route
 
-def getFastestRoutes():
+# Obtém as rotas mais rápidas utilizando o algoritmo genético
+def getFastestRoutes(routes):
+    global solution
+    global positions
+
+    solution = None
+
     file = open('directions.txt', 'r')
-    positions = get_data(file)
+    positions = get_data(file, routes)
     population = initiate_population(positions)
-    for i in range(endPoint):
+
+    for index in range(endPoint):
         fitnessResult = (getFitness(population))
         getBestSolution(fitnessResult, population)
         newPopulationSize = 0
@@ -127,7 +138,4 @@ def getFastestRoutes():
 
             newPopulationSize+=2
         population = mutatePopulation(newPopulation)
-
-    print('L' + "".join(solution[0]) + 'L')
-    
-getFastestRoutes()
+    return solution[0]

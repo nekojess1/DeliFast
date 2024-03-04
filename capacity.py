@@ -13,7 +13,7 @@ def getData():
 
 def getCapacity():
     # Lista que armazena as viagens que o motorista terá que realizar
-    entregas = []
+    deliveries = []
     items = getData()
     while items:
         capacity = 10  # Capacidade máxima da mochila
@@ -39,13 +39,10 @@ def getCapacity():
         prob.solve()
 
         # Exibindo o resultado
-        itens_selecionados_viagem = []
+        selected_items_trip  = []
         for item in items[:]:  # Criando cópia da lista e removendo os itens que já foram nessa entrega, para separar os itens das próximas entregas
             if item_selected[item["pedido"]].varValue == 1:
                 items.remove(item)
-                itens_selecionados_viagem.append(item)                
-        entregas.append(itens_selecionados_viagem)
-
-    print("Quantidade de entregas a serem realizadas:", len(entregas))
-    print("Itens a serem entregues em cada entrega:", entregas)
-    return entregas
+                selected_items_trip.append(item)                
+        deliveries.append(selected_items_trip )
+    return deliveries
